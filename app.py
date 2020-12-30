@@ -51,6 +51,14 @@ def turnoff():
         abort(500)
     return 'Lights are off!', 200
 
+@app.route('/setcolor/<int:color_temp>')
+def setcolor(color_temp):
+    try:
+        api(groups[3].set_color_temp(color_temp))    
+    except Exception as e:
+        app.logger.error(traceback.format_exc())
+        abort(500)
+    return 'Color set to:'+str(color_temp), 200
 
 if __name__ == '__main__':
     CONFIG_FILE = "tradfri_standalone_psk.conf"
