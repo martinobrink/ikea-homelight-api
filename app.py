@@ -12,11 +12,14 @@ from pytradfri import Gateway
 from pytradfri.api.libcoap_api import APIFactory
 from pytradfri.error import PytradfriError
 from pytradfri.util import load_json, save_json
+from pytradfri.const import ATTR_ID, ATTR_NAME
 
 import asyncio
 import uuid
 import argparse
 import traceback
+import json as j
+import jsonpickle as jp
 
 app = Flask(__name__)
 
@@ -41,7 +44,6 @@ def turnon():
         abort(500)
     return 'Lights are on!', 200
 
-
 @app.route('/turnoff')
 def turnoff():
     try:
@@ -53,12 +55,23 @@ def turnoff():
 
 @app.route('/setcolor/<int:color_temp>')
 def setcolor(color_temp):
+    # Ensure color temp value is within allowed range of (250,454)
+    if (color_temp < 250): color_temp = 250
+    if (color_temp > 454): color_temp = 454    
+
     try:
         api(groups[3].set_color_temp(color_temp))    
     except Exception as e:
         app.logger.error(traceback.format_exc())
         abort(500)
     return 'Color set to:'+str(color_temp), 200
+
+@app.route('/group')
+def group():
+    groups_dict = list(map(lambda group: {"id": str(group.raw.get(ATTR_ID)), "name": str(group.raw.get(ATTR_NAME))}, groups))
+    return jp.encode(groups_dict, unpicklable=False), 200
+
+
 
 if __name__ == '__main__':
     CONFIG_FILE = "tradfri_standalone_psk.conf"
