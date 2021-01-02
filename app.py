@@ -47,6 +47,54 @@ def get_lights():
         lights))
     return jp.encode(lights_dict, unpicklable=False), 200, {'Content-Type': 'application/json'}
 
+@app.route('/light/<light_id>/state/<state_on_off>', methods=['PUT'])
+def set_light_state(light_id, state_on_off):
+    if (state_on_off.lower() != 'on' and state_on_off.lower() != 'off'): return 400
+
+    state_boolean = True if (state_on_off.lower() == 'on') else False
+    filtered_lights = list(filter(lambda light: str(light.raw.get(ATTR_ID)) == light_id, lights))
+    if not filtered_lights: return 404 #light with submitted id was not found
+    
+    try:        
+        api(filtered_lights[0].light_control.set_state(state_boolean))    
+    except Exception as e:
+        app.logger.error(traceback.format_exc())
+        abort(500)
+    return 'Light ' + light_id + ', state set to: ' + state_on_off, 200
+
+
+@app.route('/light/<light_id>/color/<int:color_temp>', methods=['PUT'])
+def set_light_color(light_id, color_temp):
+    # Ensure color temp value is within allowed range of (250, 454)
+    if (color_temp < 250): color_temp = 250
+    if (color_temp > 454): color_temp = 454  
+
+    filtered_lights = list(filter(lambda light: str(light.raw.get(ATTR_ID)) == light_id, lights))
+    if not filtered_lights: return 404 #light with submitted id was not found
+    
+    try:        
+        api(filtered_lights[0].light_control.set_color_temp(color_temp))    
+    except Exception as e:
+        app.logger.error(traceback.format_exc())
+        abort(500)
+    return 'Light ' + light_id + ', color set to: ' + str(color_temp), 200
+
+@app.route('/light/<light_id>/level/<int:light_level>', methods=['PUT'])
+def set_light_light_level(light_id, light_level):
+    # Ensure light level value is within allowed range of (0, 254)
+    if (light_level < 0): light_level = 0
+    if (light_level > 254): light_level = 254  
+
+    filtered_lights = list(filter(lambda light: str(light.raw.get(ATTR_ID)) == light_id, lights))
+    if not filtered_lights: return 404 #group with submitted id was not found
+    
+    try:        
+        api(filtered_lights[0].light_control.set_dimmer(light_level))    
+    except Exception as e:
+        app.logger.error(traceback.format_exc())
+        abort(500)
+    return 'Light ' + light_id + ', light level set to: ' + str(light_level), 200
+
 @app.route('/group', methods=['GET'])
 def get_groups():
     groups_dict = list(map(lambda group: 
@@ -72,7 +120,7 @@ def set_group_state(group_id, state_on_off):
     except Exception as e:
         app.logger.error(traceback.format_exc())
         abort(500)
-    return 'Group state set to: ' + state_on_off, 200
+    return 'Group ' + group_id + ', state set to: ' + state_on_off, 200
 
 @app.route('/group/<group_id>/color/<int:color_temp>', methods=['PUT'])
 def set_group_color(group_id, color_temp):
@@ -88,7 +136,7 @@ def set_group_color(group_id, color_temp):
     except Exception as e:
         app.logger.error(traceback.format_exc())
         abort(500)
-    return 'Group ' + group_id + ' color set to: ' + str(color_temp), 200
+    return 'Group ' + group_id + ', color set to: ' + str(color_temp), 200
 
 @app.route('/group/<group_id>/level/<int:light_level>', methods=['PUT'])
 def set_group_light_level(group_id, light_level):
@@ -104,7 +152,7 @@ def set_group_light_level(group_id, light_level):
     except Exception as e:
         app.logger.error(traceback.format_exc())
         abort(500)
-    return 'Group ' + group_id + ' light level set to: ' + str(light_level), 200
+    return 'Group ' + group_id + ', light level set to: ' + str(light_level), 200
 
 
 if __name__ == '__main__':
