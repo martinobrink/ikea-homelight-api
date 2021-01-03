@@ -33,7 +33,7 @@ groups = None
 # TODO
 # - add specific color-handling (not just temperature)
 # - add https/client-secret stuff to better allow for exposing API to the internet
-# ...
+# - remove usage of app.logger.warning() for outputting startup-info
 
 @app.route('/light', methods=['GET'])
 def get_lights():
