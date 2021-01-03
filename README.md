@@ -1,7 +1,7 @@
 # ikea-homelight-api
 
 ## Introduction
-This repo provides a simple hosted and dockerized REST service for manipulating IKEA Trådfri smart lights. The underlying code for interacting directly with the IKEA Trådfri Gateway is based entirely on [pytradfri](https://github.com/home-assistant-libs/pytradfri). Code from this repo has been placed in folder 'docker-baseimage' and is used as a base image to keep my work separated from theirs.
+This repo provides a simple hosted and dockerized REST service for manipulating IKEA Trådfri smart lights. The underlying code for interacting directly with the IKEA Trådfri Gateway is based entirely on [pytradfri](https://github.com/home-assistant-libs/pytradfri). Code from this repo has been placed in folder 'docker-baseimage' and is used as a base image to keep my work separated from theirs. Please support their great work by starring their repo.
 
 The REST API exposed by this service allows you to:
 
