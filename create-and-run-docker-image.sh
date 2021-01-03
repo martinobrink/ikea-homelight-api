@@ -10,6 +10,7 @@ MACHINE=$(uname -m)
 PWD=$(pwd)
 DOCKER_RUNNING_CONTAINER_ID=$(docker ps | grep "ikea-homelight-api-server" | awk '{ print $1 }')
 
+#removes currently running docker container in order to release currently used port
 docker rm -f $DOCKER_RUNNING_CONTAINER_ID || true 
 
 docker build -t $DOCKER_IMAGE_NAME -f "$PWD/$DOCKERFILE" .

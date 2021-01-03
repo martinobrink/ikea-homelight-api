@@ -1,27 +1,25 @@
 #!/usr/bin/env python3
 
+# -- Imports from base image --
 # Hack to allow relative import above top level package
 import sys
 import os
-
 folder = os.path.dirname(os.path.abspath(__file__))  # noqa
 sys.path.insert(0, os.path.normpath("%s/.." % folder))  # noqa
-
-from flask import Flask, abort
 from pytradfri import Gateway
 from pytradfri.api.libcoap_api import APIFactory
 from pytradfri.error import PytradfriError
 from pytradfri.util import load_json, save_json
 from pytradfri.const import ATTR_ID, ATTR_NAME, ATTR_DEVICE_STATE, ATTR_LIGHT_DIMMER, ATTR_LIGHT_MIREDS
 
-import asyncio
-import uuid
-import argparse
-import traceback
-import json as j
+# -- Imports added here
+from flask import Flask, abort
+from flasgger import Swagger
 import jsonpickle as jp
+import traceback
 
 app = Flask(__name__)
+swagger = Swagger(app)
 
 # Global scope variables serving as in-memory db of lights and groups
 # (ugly but simple solution)
@@ -34,9 +32,18 @@ groups = None
 
 # TODO
 # add API overview index page at route '/'
+# separate handling of requirements.txt in this docker image
 
 @app.route('/light', methods=['GET'])
 def get_lights():
+    """Retrieve a list of all registered lights.
+    ---    
+    responses:
+      200:
+        description: ok
+        examples:
+          {"id": "99999", "name": "Bulb1", "state": "1", "level": "254", "color": "330" }
+    """
     lights_dict = list(map(lambda light: 
         {   "id": str(light.raw.get(ATTR_ID)), 
             "name": str(light.raw.get(ATTR_NAME)),
@@ -49,6 +56,25 @@ def get_lights():
 
 @app.route('/light/<light_id>/state/<state_on_off>', methods=['PUT'])
 def set_light_state(light_id, state_on_off):
+    """Turn specific light bulb on/off.
+    ---
+    parameters:
+    - name: light_id
+      in: path
+      type: string
+      required: true
+      description: Valid parameter values can be retrieved via 'GET /light' endpoint.
+    - name: state_on_off
+      in: path
+      type: string
+      required: true
+      description: Parameter value must be either 'on' or 'off'.     
+    responses:
+      200:
+        description: ok
+      400:
+        description: Missing or invalid input
+    """
     if (state_on_off.lower() != 'on' and state_on_off.lower() != 'off'): return 400
 
     state_boolean = True if (state_on_off.lower() == 'on') else False
@@ -65,6 +91,25 @@ def set_light_state(light_id, state_on_off):
 
 @app.route('/light/<light_id>/color/<int:color_temp>', methods=['PUT'])
 def set_light_color(light_id, color_temp):
+    """Set color temperature for specific light bulb.
+    ---
+    parameters:
+    - name: light_id
+      in: path
+      type: string
+      required: true
+      description: Valid parameter values can be retrieved via 'GET /light' endpoint.
+    - name: color_temp
+      in: path
+      type: int
+      required: true
+      description: Parameter value must be within range (250, 454).     
+    responses:
+      200:
+        description: ok
+      400:
+        description: Missing or invalid input
+    """
     # Ensure color temp value is within allowed range of (250, 454)
     if (color_temp < 250): color_temp = 250
     if (color_temp > 454): color_temp = 454  
@@ -81,6 +126,25 @@ def set_light_color(light_id, color_temp):
 
 @app.route('/light/<light_id>/level/<int:light_level>', methods=['PUT'])
 def set_light_light_level(light_id, light_level):
+    """Set light level for specific light bulb.
+    ---
+    parameters:
+    - name: light_id
+      in: path
+      type: string
+      required: true
+      description: Valid parameter values can be retrieved via 'GET /light' endpoint.
+    - name: light_level
+      in: path
+      type: int
+      required: true
+      description: Parameter value must be within range (0, 254).     
+    responses:
+      200:
+        description: ok
+      400:
+        description: Missing or invalid input
+    """
     # Ensure light level value is within allowed range of (0, 254)
     if (light_level < 0): light_level = 0
     if (light_level > 254): light_level = 254  
@@ -97,6 +161,14 @@ def set_light_light_level(light_id, light_level):
 
 @app.route('/group', methods=['GET'])
 def get_groups():
+    """Retrieve a list of all registered groups.
+    ---    
+    responses:
+      200:
+        description: ok
+        examples:
+          { "id": "99999", "name": "Group1", "state": "1", "level": "254", "color": "330" }
+    """
     groups_dict = list(map(lambda group: 
         {   "id": str(group.raw.get(ATTR_ID)), 
             "name": str(group.raw.get(ATTR_NAME)),
@@ -109,6 +181,25 @@ def get_groups():
 
 @app.route('/group/<group_id>/state/<state_on_off>', methods=['PUT'])
 def set_group_state(group_id, state_on_off):
+    """Turn specific light group on/off.
+    ---
+    parameters:
+    - name: group_id
+      in: path
+      type: string
+      required: true
+      description: Valid parameter values can be retrieved via 'GET /group' endpoint.
+    - name: state_on_off
+      in: path
+      type: string
+      required: true
+      description: Parameter value must be either 'on' or 'off'.     
+    responses:
+      200:
+        description: ok
+      400:
+        description: Missing or invalid input
+    """
     if (state_on_off.lower() != 'on' and state_on_off.lower() != 'off'): return 400
 
     state_boolean = True if (state_on_off.lower() == 'on') else False
@@ -124,6 +215,25 @@ def set_group_state(group_id, state_on_off):
 
 @app.route('/group/<group_id>/color/<int:color_temp>', methods=['PUT'])
 def set_group_color(group_id, color_temp):
+    """Set color temperature for specific light group.
+    ---
+    parameters:
+    - name: group_id
+      in: path
+      type: string
+      required: true
+      description: Valid parameter values can be retrieved via 'GET /group' endpoint.
+    - name: color_temp
+      in: path
+      type: int
+      required: true
+      description: Parameter value must be within range (250, 454).     
+    responses:
+      200:
+        description: ok
+      400:
+        description: Missing or invalid input
+    """
     # Ensure color temp value is within allowed range of (250, 454)
     if (color_temp < 250): color_temp = 250
     if (color_temp > 454): color_temp = 454  
@@ -140,6 +250,25 @@ def set_group_color(group_id, color_temp):
 
 @app.route('/group/<group_id>/level/<int:light_level>', methods=['PUT'])
 def set_group_light_level(group_id, light_level):
+    """Set light level for specific light group.
+    ---
+    parameters:
+    - name: group_id
+      in: path
+      type: string
+      required: true
+      description: Valid parameter values can be retrieved via 'GET /group' endpoint.
+    - name: light_level
+      in: path
+      type: int
+      required: true
+      description: Parameter value must be within range (0, 254).     
+    responses:
+      200:
+        description: ok
+      400:
+        description: Missing or invalid input
+    """
     # Ensure light level value is within allowed range of (0, 254)
     if (light_level < 0): light_level = 0
     if (light_level > 254): light_level = 254  
@@ -155,6 +284,7 @@ def set_group_light_level(group_id, light_level):
     return 'Group ' + group_id + ', light level set to: ' + str(light_level), 200
 
 
+# Initialization of server for retrieving lights/groups from IKEA Tradfri Gateway
 if __name__ == '__main__':
     CONFIG_FILE = "tradfri_standalone_psk.conf"
     IP_ADDRESS = "192.168.1.145"

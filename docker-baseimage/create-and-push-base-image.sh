@@ -5,7 +5,7 @@ set -e
 
 DOCKERFILE="Dockerfile"
 DOCKER_IMAGE_NAME="ikea-homelight-baseimage"
-DOCKER_REPO_NAME="martinobrink"
+DOCKER_REPO_NAME="martinobrink" #replace with your own repo name if necessary to create own base image
 OSX_TZ=$(ls -la /etc/localtime | cut -d/ -f8-9)
 MACHINE=$(uname -m)
 PWD=$(pwd)
