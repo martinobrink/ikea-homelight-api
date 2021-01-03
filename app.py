@@ -31,8 +31,9 @@ lights = None
 groups = None
 
 # TODO
-# add API overview index page at route '/'
-# separate handling of requirements.txt in this docker image
+# - add specific color-handling (not just temperature)
+# - add https/client-secret stuff to better allow for exposing API to the internet
+# ...
 
 @app.route('/light', methods=['GET'])
 def get_lights():
