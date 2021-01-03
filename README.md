@@ -20,7 +20,7 @@ python3 -i -m pytradfri IP
 
 where IP is the ip address of your gateway.
 
-After that, place the generated file in this repo, next to 'tradfri_standalone_psk_example.conf' and build + start the docker image by running the following command:
+After that, place the generated file in this repo, next to 'tradfri_standalone_psk_example.conf', insert your local gateway IP address in app.py and build + start the docker image by running the following command:
 
 ```bash
 ./create-and-run-docker-image.sh 
