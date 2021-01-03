@@ -1,1 +1,1 @@
-# ikea-homelight-api
+Run './create-and-push-base-image.sh' if you want to build your own version of pytradlib for your own purposes.
